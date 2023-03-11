@@ -52,40 +52,12 @@ def main():
     response_save_path = os.path.join(result_folder, 'gt_pred_response.json')
     response_dic_list = []
 
-    """
-    # metric init
-    sum_bleu_1, sum_bleu_2, sum_bleu_3, sum_bleu_4 = 0, 0, 0, 0
-    rouger = Rouge()
-    sum_rouge_1, sum_rouge_2, sum_rouge_l = 0, 0, 0
-    """
-
     with torch.no_grad():
         for i, data in tqdm(enumerate(test_data)):
             context, gt_response = data["context"], data["response"]
             pred_response = generate_response(context, tokenizer, model, args.device)
 
             response_dic_list.append({"ground_truth": gt_response, "predicted": pred_response})
-
-            """
-            gt_response_words = gt_response.split(' ')
-            pred_response_words = pred_response.split(' ')
-
-            # bleu
-            sum_bleu_1 += sentence_bleu([gt_response_words], pred_response_words, weights=(1, 0, 0, 0))
-            sum_bleu_2 += sentence_bleu([gt_response_words], pred_response_words, weights=(0.5, 0.5, 0, 0))
-            sum_bleu_3 += sentence_bleu([gt_response_words], pred_response_words, weights=(0.33, 0.33, 0.33, 0))
-            sum_bleu_4 += sentence_bleu([gt_response_words], pred_response_words, weights=(0.25, 0.25, 0.25, 0.25))
-
-            # rouge
-            if pred_response != "":  # 若pred_response为空，则计算rouge时会报错
-                rouge = rouger.get_scores(hyps=pred_response, refs=response)[0]
-                sum_rouge_1 += rouge['rouge-1']['f']
-                sum_rouge_2 += rouge['rouge-2']['f']
-                sum_rouge_l += rouge['rouge-l']['f']
-
-            print(f"BLEU-1 = {sum_bleu_1/(i+1)*100}, BLEU-2 = {sum_bleu_2/(i+1)*100}, BLEU-3 = {sum_bleu_3/(i+1)*100}, BLEU-4 = {sum_bleu_4/(i+1)*100}")
-            print(f"ROUGE-1 = {sum_rouge_1/(i+1)*100}, ROUGE-2 = {sum_rouge_2/(i+1)*100}, ROUGE-l = {sum_rouge_l/(i+1)*100}")
-            """
 
     # 写入json文件
     fout_path = os.path.join(response_save_path)
@@ -95,3 +67,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
