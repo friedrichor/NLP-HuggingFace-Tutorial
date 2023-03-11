@@ -58,7 +58,7 @@ if __name__ == '__main__':
     print(dataset)  # 查看数据集格式
     pprint(dataset['train'][0], width=1000)  # 查看数据格式
     print("=" * 100)
-"""
+
     train_data = dataset['train']
     process_data(train_data, 'train')
 
@@ -68,5 +68,5 @@ if __name__ == '__main__':
     test_data = dataset['test']
     process_data(test_data, 'test')
     process_test_data_for_evaluate(test_data)
-"""
+
 
