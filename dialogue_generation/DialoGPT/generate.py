@@ -2,11 +2,12 @@ import os
 import sys
 import json
 from tqdm import tqdm
+import argparse
 
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, GPT2Config
 
-from params import args
+import params
 from utils import tokenizer_plus, read_json
 
 import warnings
@@ -27,7 +28,7 @@ def generate_response(context: str, tokenizer, model, device):
     return response
 
 
-def main():
+def main(args):
     # tokenizer
     tokenizer = GPT2Tokenizer.from_pretrained(args.model_name)
     tokenizer, num_add_token = tokenizer_plus(tokenizer)
@@ -37,7 +38,7 @@ def main():
     config.vocab_size += num_add_token
 
     # load model weights
-    weights = os.path.join(sys.path[0], "weights", "DialoGPT-small-Mar10_20-19-24-epoch2-ppl1.757.pth")  # 这里需要改成你训练后保存模型的路径
+    weights = os.path.join(args.weights_dir, "DialoGPT-small-Mar10_20-19-24-epoch2-ppl1.757.pth")  # 这里需要改成你训练后保存模型的路径
     model = GPT2LMHeadModel.from_pretrained(weights, config=config).to(args.device)
     model.eval()
 
@@ -66,5 +67,17 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    
+    parser = argparse.ArgumentParser()
+
+    TEXT_DIALOGUE_MODEL = ['microsoft/DialoGPT-small', 'microsoft/DialoGPT-medium', 'microsoft/DialoGPT-large']
+    parser.add_argument('--model_name', type=str, choices=TEXT_DIALOGUE_MODEL, default=params.model_name)
+    parser.add_argument('--tokenizer_name', type=str, default=params.tokenizer_name)
+
+    parser.add_argument('--device', default=params.device)
+    parser.add_argument('--nw', type=int, default=params.num_workers)
+    parser.add_argument('--data_dir', type=str, default=params.data_dir)
+    parser.add_argument('--weights_dir', type=str, default=params.weights_dir)
+
+    args = parser.parse_args()
+
+    main(args)
