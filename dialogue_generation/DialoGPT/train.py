@@ -3,6 +3,7 @@ import sys
 import logging
 from pprint import pprint
 from datetime import datetime
+import argparse
 
 import torch
 from torch.utils.data import DataLoader
@@ -10,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 from transformers.optimization import AdamW, get_linear_schedule_with_warmup
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
-from params import args
+import params
 from dataset import TDRGDataset
 from utils import tokenizer_plus, read_json, train_one_epoch, validate
 
@@ -18,7 +19,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-def main():
+def main(args):
     pprint(args.__dict__)
 
     if not os.path.exists(args.weights_dir):
@@ -122,4 +123,23 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--epochs', type=int, default=params.epochs)
+    parser.add_argument('--batch_size', type=int, default=params.batch_size)
+    parser.add_argument('--lr', type=float, default=params.lr)
+    parser.add_argument('--weight_decay', type=float, default=params.weight_decay)
+
+    TEXT_DIALOGUE_MODEL = ['microsoft/DialoGPT-small', 'microsoft/DialoGPT-medium', 'microsoft/DialoGPT-large']
+    parser.add_argument('--model_name', type=str, choices=TEXT_DIALOGUE_MODEL, default=params.model_name)
+    parser.add_argument('--tokenizer_name', type=str, default=params.tokenizer_name)
+
+    parser.add_argument('--device', default=params.device)
+    parser.add_argument('--nw', type=int, default=params.num_workers)
+    parser.add_argument('--data_dir', type=str, default=params.data_dir)
+    parser.add_argument('--weights_dir', type=str, default=params.weights_dir)
+
+    args = parser.parse_args()
+
+    main(args)
+
