@@ -73,14 +73,14 @@ def main(args):
 
     # model
     # 这里调用的是我更改的模型 (仅作为一个示例)，在 Bert 后接两层全链接层，且保证最终输出维度为 num_classes
-    # model = MyBertModel(pretrained_model_name_or_path=args.pretrained_model_name_or_path, num_classes=args.num_classes)
-    # model.to(args.device)
-    #"""
+    model = MyBertModel(pretrained_model_name_or_path=args.pretrained_model_name_or_path, num_classes=args.num_classes)
+    model.to(args.device)
+    """
     # 此外也可以直接调用 BertForSequenceClassification，并更改其最后一层输出维度为 num_classes
     # 直接使用以下代码代替上方代码即可
     model = BertForSequenceClassification.from_pretrained(args.pretrained_model_name_or_path, num_labels=args.num_classes)
     model.to(args.device)
-    #"""
+    """
 
     pg = [p for p in model.parameters() if p.requires_grad]
     optimizer = AdamW(pg, lr=args.lr, weight_decay=args.weight_decay)
