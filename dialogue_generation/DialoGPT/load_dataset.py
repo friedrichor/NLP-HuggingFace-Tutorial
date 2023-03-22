@@ -44,8 +44,7 @@ def process_test_data_for_evaluate(data):
 
     # Writing to a json file
     dataset_folder = os.path.join(sys.path[0], 'dataset')
-    if not os.path.exists(dataset_folder):
-        os.makedirs(dataset_folder)
+    os.makedirs(dataset_folder, exist_ok=True)
     fout_path = os.path.join(dataset_folder, 'test_evaluate.json')
     with open(fout_path, 'w', encoding='utf-8') as fout:
         json.dump(dialogue_dic_list, fout, indent=4)
