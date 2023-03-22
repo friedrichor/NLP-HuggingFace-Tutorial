@@ -23,7 +23,7 @@ python demo.py --weights_name=DialoGPT-small-Mar10_20-19-24-epoch2-ppl1.757.pth
 
 
 ## 其他说明
-1. ProsocialDialog 是一个单轮对话的数据集，运行`load_dataset.py`后的结果放在了`dialogue_generation/datasets/ProsocialDialog_processed`  
+1. ProsocialDialog 是一个单轮对话的数据集，运行`load_dataset.py`后的结果放在了[dialogue_generation/datasets/ProsocialDialog_processed](https://github.com/friedrichor/HuggingFace-Tutorial/tree/main/dialogue_generation/datasets/ProsocialDialog_processed)  
 如果想用你自己的数据训练，把数据处理成和我的数据格式相同即可，训练代码无需更改  
 如果是用多轮对话的数据集可以参考我处理后的数据格式，如 `sentence1 [SEP] sentence2 [SEP] sentence3 [SEP] sentence4 [EOS]`, 
 这里的 `[SEP]` 和 `[EOS]` 分别指 `sep_token` 和 `eos_token`。各个Tokenizer中 `sep_token` 和 `eos_token` 的定义还不太一样，如 BERT 中的 `sep_token` 就是 `[SEP]`，`eos_token` 就是 `[EOS]`，
