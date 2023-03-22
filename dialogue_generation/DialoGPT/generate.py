@@ -38,7 +38,9 @@ def main(args):
     config.vocab_size += num_add_token
 
     # load model weights
-    weights = os.path.join(args.weights_dir, "DialoGPT-small-Mar10_20-19-24-epoch2-ppl1.757.pth")  # 这里需要改成你训练后保存模型的路径
+    if args.weights_name == None:
+        raise ValueError("weights_name is not available. Please set the weights_name")
+    weights = os.path.join(args.weights_dir, args.weights_name)
     model = GPT2LMHeadModel.from_pretrained(weights, config=config).to(args.device)
     model.eval()
 
@@ -77,6 +79,7 @@ if __name__ == "__main__":
     parser.add_argument('--nw', type=int, default=params.num_workers)
     parser.add_argument('--data_dir', type=str, default=params.data_dir)
     parser.add_argument('--weights_dir', type=str, default=params.weights_dir)
+    parser.add_argument('--weights_name', type=str, default=None)
 
     args = parser.parse_args()
 
