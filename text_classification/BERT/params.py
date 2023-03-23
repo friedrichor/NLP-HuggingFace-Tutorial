@@ -5,10 +5,11 @@ import torch
 
 num_classes = 4  # 类别数 (tweet_eval 中的情感分析数据集为 4 分类)
 
-epochs = 5
+epochs = 10
 batch_size = 16
 lr = 5e-4
 weight_decay = 5e-3
+freeze_layers = True
 
 pretrained_model_name_or_path = 'bert-base-uncased'
 
