@@ -72,7 +72,7 @@ def main(args):
                               drop_last=False)
 
     # model
-    # 这里调用的是我更改的模型 (仅作为一个示例)，在 Roberta 后接两层全链接层，且保证最终输出维度为 num_classes
+    # 这里调用的是我更改的模型 (仅作为一个示例)，在 Roberta 后接两层全连接层，且保证最终输出维度为 num_classes
     model = MyRobertaModel(pretrained_model_name_or_path=args.pretrained_model_name_or_path,
                            num_classes=args.num_classes,
                            freeze_layers=args.freeze_layers)
