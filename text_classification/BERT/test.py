@@ -58,13 +58,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_classes', type=int, default=params.num_classes)
     parser.add_argument('--pretrained_model_name_or_path', type=str, default=params.pretrained_model_name_or_path)
 
-    parser.add_argument('--epochs', type=int, default=params.epochs)
-    parser.add_argument('--batch_size', type=int, default=params.batch_size)
-    parser.add_argument('--lr', type=float, default=params.lr)
-    parser.add_argument('--weight_decay', type=float, default=params.weight_decay)
-
     parser.add_argument('--device', default=params.device)
-    parser.add_argument('--nw', type=int, default=params.num_workers)
     parser.add_argument('--data_dir', type=str, default=params.data_dir)
     parser.add_argument('--save_weights_path', type=str, default=params.save_weights_path)
     parser.add_argument('--weights_name', type=str, default=None)
