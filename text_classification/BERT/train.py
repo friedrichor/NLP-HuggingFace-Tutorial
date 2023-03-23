@@ -67,20 +67,26 @@ def main(args):
                               batch_size=1,
                               shuffle=False,
                               pin_memory=True,
-                              num_workers=args.nw,
+                              num_workers=0,
                               collate_fn=valid_set.collate_fn,
                               drop_last=False)
 
     # model
-    # 这里调用的是我更改的模型 (仅作为一个示例)，在 Bert 后接两层全链接层，且保证最终输出维度为 num_classes
-    model = MyBertModel(pretrained_model_name_or_path=args.pretrained_model_name_or_path, num_classes=args.num_classes)
-    model.to(args.device)
-    """
+    # 这里调用的是我更改的模型 (仅作为一个示例)，在 Bert 后接两层全连接层，且保证最终输出维度为 num_classes
+    # model = MyBertModel(pretrained_model_name_or_path=args.pretrained_model_name_or_path,
+    #                     num_classes=args.num_classes,
+    #                     freeze_layers=args.freeze_layers)
+    # model.to(args.device)
+    # """
     # 此外也可以直接调用 BertForSequenceClassification，并更改其最后一层输出维度为 num_classes
     # 直接使用以下代码代替上方代码即可
     model = BertForSequenceClassification.from_pretrained(args.pretrained_model_name_or_path, num_labels=args.num_classes)
+    if args.freeze_layers:
+        for name, para in model.named_parameters():
+            if 'classifier' not in name:  # 除了最后一个 classifier 层外，其它层全部冻结
+                para.requires_grad_(False)
     model.to(args.device)
-    """
+    # """
 
     pg = [p for p in model.parameters() if p.requires_grad]
     optimizer = AdamW(pg, lr=args.lr, weight_decay=args.weight_decay)
@@ -117,6 +123,7 @@ def main(args):
         }
 
         logger.info("=" * 100)
+        logger.info(f"epoch: {epoch}")
         # 记录训练中各个指标的信息
         for key, value in results.items():
             tb_writer.add_scalar(key, value, epoch)
@@ -139,6 +146,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=params.batch_size)
     parser.add_argument('--lr', type=float, default=params.lr)
     parser.add_argument('--weight_decay', type=float, default=params.weight_decay)
+    parser.add_argument('--freeze_layers', type=bool, default=params.freeze_layers)
 
     parser.add_argument('--device', default=params.device)
     parser.add_argument('--nw', type=int, default=params.num_workers)
