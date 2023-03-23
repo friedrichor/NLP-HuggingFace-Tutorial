@@ -123,6 +123,7 @@ def main(args):
         }
 
         logger.info("=" * 100)
+        logger.info(f"epoch: {epoch}")
         # 记录训练中各个指标的信息
         for key, value in results.items():
             tb_writer.add_scalar(key, value, epoch)
