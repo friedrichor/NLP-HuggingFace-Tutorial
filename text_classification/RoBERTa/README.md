@@ -1,8 +1,5 @@
 # Finetune BERT for text classification
 
-## 硬件要求
-显存 >= 2G 的 GPU 即可
-
 ## 代码使用流程
 
 1. 运行 `load_dataset.py` 下载并处理数据集并保存到本地，这里使用的是 tweet_eval 数据集中的情感分析数据集 (4 分类) 
