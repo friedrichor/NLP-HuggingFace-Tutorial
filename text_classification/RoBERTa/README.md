@@ -1,4 +1,4 @@
-# Finetune BERT for text classification
+# Finetune RoBERTa for text classification
 
 ## 代码使用流程
 
