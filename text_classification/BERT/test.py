@@ -31,23 +31,23 @@ def main(args):
                              batch_size=1,
                              shuffle=False,
                              pin_memory=True,
-                             num_workers=args.nw,
+                             num_workers=0,
                              collate_fn=test_set.collate_fn,
                              drop_last=False)
 
-    weights_path = os.path.join(args.save_weights_path, args.weights_name)
     # model
     model = MyBertModel(pretrained_model_name_or_path=args.pretrained_model_name_or_path, num_classes=args.num_classes)
-    model.load_state_dict(torch.load(weights_path, map_location=args.device))
-    model.to(args.device)
     """
     # 此外也可以直接调用 BertForSequenceClassification，并更改其最后一层输出维度为 num_classes
     # 直接使用以下代码代替上方代码即可
     model = BertForSequenceClassification.from_pretrained(args.pretrained_model_name_or_path, num_labels=args.num_classes)
+    """
+    # load weights
+    weights_path = os.path.join(args.save_weights_path, args.weights_name)
     model.load_state_dict(torch.load(weights_path, map_location=args.device))
     model.to(args.device)
-    """
 
+    # test
     test_result = validate(model=model, device=args.device, data_loader=test_loader)
     print(test_result)
 
