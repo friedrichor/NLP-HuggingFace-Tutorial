@@ -1,4 +1,4 @@
-# Finetune BERT for text classification
+# Prompt Learning: finetune BERT for text classification
 
 ## 硬件要求
 
@@ -24,7 +24,7 @@ python test.py --weights_name=bert-base-uncased-Mar22_20-30-56-epoch0.pth
 &emsp;&emsp;或者直接在 `test.py` 中将 `parser.add_argument('--weights_name', type=str, default=None)` 改为 `parser.add_argument('--weights_name', type=str, default="bert-base-uncased-Mar22_20-30-56-epoch0.pth")`
 
 ## 使用自己的数据集进行 fine-tune
-1. 按照 [text_classification_Prompt/BERT/dataset](https://github.com/friedrichor/HuggingFace-Tutorial/tree/main/text_classification/datasets/tweet_eval-emotion_processed) 中的数据格式，把你的数据集也处理成这种格式 (json文件) 即可:
+1. 按照 [text_classification_Prompt/BERT/dataset](https://github.com/friedrichor/HuggingFace-Tutorial/tree/main/text_classification_Prompt/BERT/dataset) 中的数据格式，把你的数据集也处理成这种格式 (json文件) 即可:
 ```commandline
 [
     {
@@ -38,7 +38,7 @@ python test.py --weights_name=bert-base-uncased-Mar22_20-30-56-epoch0.pth
     }
 ]
 ```
-2. 按照 [text_classification_Prompt/BERT/classes_labels.json]() 中的格式，把你的数据集也处理成这种格式 (json文件) 即可:
+2. 按照 [text_classification_Prompt/BERT/classes_labels.json](https://github.com/friedrichor/HuggingFace-Tutorial/blob/main/text_classification_Prompt/BERT/classes_labels.json) 中的格式，把你的数据集也处理成这种格式 (json文件) 即可:
 ```commandline
 {
     "class_1": 0,
