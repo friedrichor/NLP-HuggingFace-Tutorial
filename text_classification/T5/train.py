@@ -83,7 +83,7 @@ def main(args):
                                                    num_warmup_steps=len(train_loader),
                                                    num_training_steps=len(train_loader) * args.epochs)
 
-    best_macro_f1 = 0
+    best_accuracy = 0
     for epoch in range(args.epochs):
         train_result = train_one_epoch(model=model,
                                        device=args.device,
@@ -112,10 +112,10 @@ def main(args):
             logger.info(f"{key}: {value}")
 
         # 保存在验证集上 accuracy 最高的模型
-        if dev_result['accuracy'] > best_macro_f1:
+        if dev_result['accuracy'] > best_accuracy:
             torch.save(model.state_dict(), os.path.join(args.save_weights_path, '{}-{}-epoch{}.pth'.format(
                        args.pretrained_model_name_or_path.split('/')[-1], current_time, epoch)))
-            best_macro_f1 = dev_result['accuracy']
+            best_accuracy = dev_result['accuracy']
 
 
 if __name__ == "__main__":
