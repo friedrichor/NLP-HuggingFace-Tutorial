@@ -1,4 +1,4 @@
-# Finetune T5Encoder for text classification
+# Finetune T5 for text classification
 
 T5 (Text-To-Text Transfer Transformer) 是一个 text-to-text 模型，可以直接用来做 text classification。  
 其性能甚至要比一些专门做分类的模型还要好，例如本代码所使用的 tweet_eval 数据集，很轻松就超过 PapersWithCode 中的 SOTA 模型。
