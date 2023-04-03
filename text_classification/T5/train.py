@@ -149,7 +149,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--num_classes', type=int, default=params.num_classes)
     parser.add_argument('--classes_map_dir', type=str, default=params.classes_map_dir)
     parser.add_argument('--prefix_text', type=str, default=params.prefix_text)
     parser.add_argument('--pretrained_model_name_or_path', type=str, default=params.pretrained_model_name_or_path)
