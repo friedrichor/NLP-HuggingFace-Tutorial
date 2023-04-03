@@ -4,15 +4,16 @@ import torch
 
 
 num_classes = 4  # 类别数 (tweet_eval 中的情感分析数据集为 4 分类)
-classes_map_dir = "classes_map.json"
+classes_map_dir = os.path.join(sys.path[0], "classes_map.json")
 prefix_text = "tweet_eval emotion sentence: "
 
 pretrained_model_name_or_path = 't5-base'
 
-epochs = 10
-batch_size = 8
-lr = 5e-4
-weight_decay = 5e-3
+num_train_epochs = 10
+batch_size = 16
+learning_rate = 1e-4
+lr_warmup_steps = 0
+weight_decay = 0
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
