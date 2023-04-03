@@ -63,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument('--device', default=params.device)
     parser.add_argument('--data_dir', type=str, default=params.data_dir)
     parser.add_argument('--save_weights_path', type=str, default=params.save_weights_path)
-    parser.add_argument('--weights_name', type=str, default="t5-base-Apr03_19-03-11-epoch2.pth")
+    parser.add_argument('--weights_name', type=str, default=None)
 
     args = parser.parse_args()
 
