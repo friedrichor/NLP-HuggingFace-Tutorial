@@ -56,7 +56,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--num_classes', type=int, default=params.num_classes)
     parser.add_argument('--classes_map_dir', type=str, default=params.classes_map_dir)
     parser.add_argument('--prefix_text', type=str, default=params.prefix_text)
     parser.add_argument('--pretrained_model_name_or_path', type=str, default=params.pretrained_model_name_or_path)
@@ -64,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument('--device', default=params.device)
     parser.add_argument('--data_dir', type=str, default=params.data_dir)
     parser.add_argument('--save_weights_path', type=str, default=params.save_weights_path)
-    parser.add_argument('--weights_name', type=str, default="t5-base-Mar29_15-17-48-epoch6.pth")
+    parser.add_argument('--weights_name', type=str, default="t5-base-Apr03_19-03-11-epoch2.pth")
 
     args = parser.parse_args()
 
