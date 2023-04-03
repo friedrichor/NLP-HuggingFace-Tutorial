@@ -3,7 +3,6 @@ import sys
 import torch
 
 
-num_classes = 4  # 类别数 (tweet_eval 中的情感分析数据集为 4 分类)
 classes_map_dir = os.path.join(sys.path[0], "classes_map.json")
 prefix_text = "tweet_eval emotion sentence: "
 
