@@ -15,7 +15,7 @@ def read_json(data_file):
     return data
 
 
-def train_one_epoch(model, device, data_loader, epoch, optimizer, lr_scheduler):
+def train_one_epoch(model: T5ForConditionalGeneration, device, data_loader, epoch, optimizer, lr_scheduler):
     model.train()
 
     predicted_labels = torch.LongTensor([]).to(device)
@@ -30,12 +30,12 @@ def train_one_epoch(model, device, data_loader, epoch, optimizer, lr_scheduler):
         attention_mask = data['attention_mask'].to(device)
         labels = data['labels'].to(device)
 
-        pred = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-        loss, pred_logits = pred.loss, pred.logits  # pre_logits.shape = torch.Size([batch size, 1, vocab size])
-        pred_labels = torch.max(pred_logits, dim=-1).indices
+        outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+        loss, logits = outputs.loss, outputs.logits  # logits.shape = torch.Size([batch size, 2, vocab size])
+        pred_labels = torch.max(logits, dim=-1).indices
 
-        ground_truth_labels = torch.cat([ground_truth_labels, labels])
-        predicted_labels = torch.cat([predicted_labels, pred_labels])
+        ground_truth_labels = torch.cat([ground_truth_labels, labels[:, 0]])
+        predicted_labels = torch.cat([predicted_labels, pred_labels[:, 0]])
 
         # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score
         accuracy = accuracy_score(ground_truth_labels.tolist(), predicted_labels.tolist())
@@ -65,7 +65,7 @@ def train_one_epoch(model, device, data_loader, epoch, optimizer, lr_scheduler):
 
 
 @torch.no_grad()
-def validate(model, device, data_loader, epoch=0):
+def validate(model: T5ForConditionalGeneration, device, data_loader, label_id_list: List, epoch):
     model.eval()
 
     predicted_labels = torch.LongTensor([]).to(device)
@@ -80,18 +80,30 @@ def validate(model, device, data_loader, epoch=0):
         out = model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=2)
         pred_labels = out[:, 1]
 
-        ground_truth_labels = torch.cat([ground_truth_labels, labels])
+        ground_truth_labels = torch.cat([ground_truth_labels, labels[:, 0]])
         predicted_labels = torch.cat([predicted_labels, pred_labels])
+
+        # 一般来说，训练过的 T5 模型在做分类任务时，生成的标签不会出现标签外的单词，具体请看原论文。以下代码只是证明一下确实没有生成标签外的单词
+        for pred in pred_labels:
+            if pred not in label_id_list:
+                print(f"The predicted label is not in label_id_list, its index is {pred}")
 
         # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score
         accuracy = accuracy_score(ground_truth_labels.tolist(), predicted_labels.tolist())
+        # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html#sklearn.metrics.f1_score
+        macro_f1 = f1_score(ground_truth_labels.tolist(), predicted_labels.tolist(), average='macro')
+        micro_f1 = f1_score(ground_truth_labels.tolist(), predicted_labels.tolist(), average='micro')
+        weighted_f1 = f1_score(ground_truth_labels.tolist(), predicted_labels.tolist(), average='weighted')
 
-        data_loader.desc = "[valid epoch {}] acc: {:.3f}".format(
-            epoch, accuracy
+        data_loader.desc = "[valid epoch {}] acc: {:.3f}, macro_f1: {:.3f}, micro_f1: {:.3f}, weighted_f1: {:.3f}".format(
+            epoch, accuracy, macro_f1, micro_f1, weighted_f1
         )
 
     return {
-        'accuracy': accuracy
+        'accuracy': accuracy,
+        'macro_f1': macro_f1,
+        'micro_f1': micro_f1,
+        'weighted_f1': weighted_f1
     }
 
 
@@ -116,7 +128,7 @@ def test(model: T5ForConditionalGeneration, device, data_loader, label_id_list: 
             if pred not in label_id_list:
                 print(f"The predicted label is not in label_id_list, its index is {pred}")
 
-        ground_truth_labels = torch.cat([ground_truth_labels, labels])
+        ground_truth_labels = torch.cat([ground_truth_labels, labels[:, 0]])
         predicted_labels = torch.cat([predicted_labels, pred_labels])
 
         # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score
