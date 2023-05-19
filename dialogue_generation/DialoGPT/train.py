@@ -12,8 +12,8 @@ from transformers.optimization import AdamW, get_linear_schedule_with_warmup
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
 import params
-from dataset import TDRGDataset
-from utils import tokenizer_plus, read_json, train_one_epoch, validate
+from dataset import MyDataset
+from utils import train_one_epoch, validate, read_json, init_logger
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -22,78 +22,63 @@ warnings.filterwarnings("ignore")
 def main(args):
     pprint(args.__dict__)
 
-    if not os.path.exists(args.weights_dir):
-        os.makedirs(args.weights_dir)
-
-    # tensorboard --logdir=runs
-    # 用于记录训练过程中各个参数/指标的变化
-    current_time = datetime.now().strftime("%b%d_%H-%M-%S")
-    log_dir = os.path.join(sys.path[0], "runs",
-                           "{}_{}_lr{}_wd{}".format(args.model_name.split('/')[-1], current_time, str(args.lr),
-                                                    str(args.weight_decay)))
-    tb_writer = SummaryWriter(log_dir=log_dir)
-
-    # logging
-    # 用于记录训练过程中的信息
-    if not os.path.exists(os.path.join(sys.path[0], "logs")):
-        os.makedirs(os.path.join(sys.path[0], "logs"))
-    log_path = os.path.join(sys.path[0], "logs", "{}_{}.txt".format(args.model_name.split('/')[-1], current_time))
-    logger = logging.getLogger(__name__)
-    logger.setLevel(level=logging.INFO)
-    handler = logging.FileHandler(log_path)
-    handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
-    for key, value in args.__dict__.items():
-        logger.info(f'{key}: {value}')
+    # tokenizer
+    tokenizer = GPT2Tokenizer.from_pretrained(args.pretrained_model_name_or_path, padding_side='left')
+    tokenizer.pad_token = tokenizer.eos_token
 
     # data
-    train_data_file = os.path.join(args.data_dir, "train.json")
-    valid_data_file = os.path.join(args.data_dir, "validation.json")
+    train_data = read_json(os.path.join(args.data_dir, "train.json"))
+    valid_data = read_json(os.path.join(args.data_dir, "validation.json"))
 
-    train_data = read_json(train_data_file)
-    valid_data = read_json(valid_data_file)
-
-    # tokenizer
-    # 添加 pad_token 和 sep_token (DialoGPT 的 Tokenizer 中没有 pad_token 和 sep_token)
-    tokenizer = GPT2Tokenizer.from_pretrained(args.tokenizer_name)  # AutoTokenizer
-    tokenizer, _ = tokenizer_plus(tokenizer, logger)
-
+    # num_workers
+    num_workers = min([os.cpu_count(), args.train_batch_size if args.train_batch_size > 1 else 0, 8])
+    
     # dataset, dataloader
-    train_set = TDRGDataset(train_data, tokenizer)
+    train_set = MyDataset(train_data, tokenizer)
     train_loader = DataLoader(train_set,
-                              batch_size=args.batch_size,
+                              batch_size=args.train_batch_size,
                               shuffle=True,
                               pin_memory=True,
-                              num_workers=args.nw,
+                              num_workers=num_workers,
                               collate_fn=train_set.collate_fn,
                               drop_last=True)
 
-    valid_set = TDRGDataset(valid_data, tokenizer)
+    valid_set = MyDataset(valid_data, tokenizer)
     valid_loader = DataLoader(valid_set,
-                              batch_size=1,
+                              batch_size=args.valid_batch_size,
                               shuffle=False,
                               pin_memory=True,
-                              num_workers=args.nw,
+                              num_workers=0,
                               collate_fn=valid_set.collate_fn,
-                              drop_last=False)
+                              drop_last=True)
 
     # model
-    model = GPT2LMHeadModel.from_pretrained(args.model_name).to(args.device)  # AutoModelForCausalLM
-    model.resize_token_embeddings(len(tokenizer))
+    model = GPT2LMHeadModel.from_pretrained(args.pretrained_model_name_or_path)
+    model.to(args.device)
 
-    pg = [p for p in model.parameters() if p.requires_grad]
-    optimizer = AdamW(pg, lr=args.lr, weight_decay=args.weight_decay)
-    lr_scheduler = get_linear_schedule_with_warmup(optimizer=optimizer, num_warmup_steps=len(train_loader),
-                                                   num_training_steps=len(train_loader) * args.epochs)
+    optimizer = AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+    lr_scheduler = get_linear_schedule_with_warmup(optimizer=optimizer,
+                                                   num_warmup_steps=args.num_warmup_steps,
+                                                   num_training_steps=len(train_loader) * args.train_batch_size)
+    
+    # tensorboard --logdir=runs
+    # 用于记录训练过程中各个参数/指标的变化
+    current_time = datetime.now().strftime("%b%d_%H-%M-%S")
+    log_dir = os.path.join(sys.path[0], "runs", "{}_{}".format(args.pretrained_model_name_or_path.split('/')[-1], current_time))
+    tb_writer = SummaryWriter(log_dir=log_dir)
+    # logging
+    logger = init_logger(args, current_time)
+    
+    os.makedirs(args.weights_dir, exist_ok=True)
 
     best_ppl = float('inf')
-    for epoch in range(args.epochs):
+    for epoch in range(args.num_train_epochs):
         train_result = train_one_epoch(model=model,
                                        device=args.device,
                                        data_loader=train_loader,
-                                       epoch=epoch,
                                        optimizer=optimizer,
-                                       lr_scheduler=lr_scheduler)
+                                       lr_scheduler=lr_scheduler,
+                                       epoch=epoch)
 
         dev_result = validate(model=model,
                               device=args.device,
@@ -118,25 +103,24 @@ def main(args):
         if dev_result['perplexity'] < best_ppl:
             current_time = datetime.now().strftime("%b%d_%H-%M-%S")
             torch.save(model.state_dict(), os.path.join(args.weights_dir, '{}-{}-epoch{}-ppl{:.3f}.pth'.format(
-                       args.model_name.split('/')[-1], current_time, epoch, dev_result['perplexity'])))
+                       args.pretrained_model_name_or_path.split('/')[-1], current_time, epoch, dev_result['perplexity'])))
             best_ppl = dev_result['perplexity']
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--epochs', type=int, default=params.epochs)
-    parser.add_argument('--batch_size', type=int, default=params.batch_size)
-    parser.add_argument('--lr', type=float, default=params.lr)
+    parser.add_argument('--pretrained_model_name_or_path', type=str, default=params.pretrained_model_name_or_path)
+    parser.add_argument('--data_dir', type=str, default=params.data_dir)
+    
+    parser.add_argument('--num_train_epochs', type=int, default=params.num_train_epochs)
+    parser.add_argument('--train_batch_size', type=int, default=params.train_batch_size)
+    parser.add_argument('--valid_batch_size', type=int, default=params.valid_batch_size)
+    parser.add_argument('--learning_rate', type=float, default=params.learning_rate)
     parser.add_argument('--weight_decay', type=float, default=params.weight_decay)
-
-    TEXT_DIALOGUE_MODEL = ['microsoft/DialoGPT-small', 'microsoft/DialoGPT-medium', 'microsoft/DialoGPT-large']
-    parser.add_argument('--model_name', type=str, choices=TEXT_DIALOGUE_MODEL, default=params.model_name)
-    parser.add_argument('--tokenizer_name', type=str, default=params.tokenizer_name)
+    parser.add_argument('--num_warmup_steps', type=int, default=params.num_warmup_steps)
 
     parser.add_argument('--device', default=params.device)
-    parser.add_argument('--nw', type=int, default=params.num_workers)
-    parser.add_argument('--data_dir', type=str, default=params.data_dir)
     parser.add_argument('--weights_dir', type=str, default=params.weights_dir)
 
     args = parser.parse_args()

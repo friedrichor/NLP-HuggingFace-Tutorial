@@ -1,63 +1,38 @@
+import os
 import sys
 import json
+import logging
 from tqdm import tqdm
 
 import torch
 
 
-def tokenizer_plus(tokenizer, logger=None):
-    """
-    由于 DialoGPT 的 Tokenizer 中没有 pad_token 和 sep_token, 在这里添加上
-    """
-    num_add_token = 0
-    if tokenizer.pad_token is None:
-        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-        num_add_token += 1
-        if logger:
-            logger.info("add_special_tokens: [PAD]")
-
-    if tokenizer.sep_token is None:
-        tokenizer.add_special_tokens({'sep_token': '[SEP]'})
-        num_add_token += 1
-        if logger:
-            logger.info("add_special_tokens: [SEP]")
-
-    return tokenizer, num_add_token
-
-
-def read_json(data_file):
-    with open(data_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    return data
-
-
-def train_one_epoch(model, device, data_loader, epoch, optimizer, lr_scheduler):
+def train_one_epoch(model, device, data_loader, optimizer, lr_scheduler, epoch):
     model.train()
 
-    accu_loss = torch.zeros(1).to(device)  # 累计损失
+    sum_loss = torch.zeros(1).to(device)  # cumulative loss
     optimizer.zero_grad()
 
     data_loader = tqdm(data_loader, file=sys.stdout)
     for step, data in enumerate(data_loader):
-        inputs = data['input_ids'].to(device)  # [batch size, max seq len(batch内句子最大长度)]
-        # labels = data['label'].to(device)
+        input_ids = data['input_ids'].to(device)  # torch.Size([batch_size, max_seq_len(input_ids)])
+        attention_mask = data['attention_mask'].to(device)  # btorch.Size([batch_size, max_seq_len(input_ids)])
 
-        outputs = model(input_ids=inputs, labels=inputs)  # 注意这里指定 input_ids 和 labels 相同
+        outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)  # 注意这里 input_ids 和 labels 的输入相同
         # outputs: [0]: loss        一个数
-        #          [1]: logits      size=[batch size, max seq len, vocab size], 如[16,512,50257]
-        loss = outputs[0]
-
+        #          [1]: logits      size=[batch_size, max_seq_len, vocab_size], 如[16,256,50257]
+        loss = outputs.loss
         loss.backward()
-        accu_loss += loss.detach()
-        avg_loss = accu_loss.item() / (step + 1)
-        perplexity = torch.exp(torch.tensor(avg_loss))
+        
+        sum_loss += loss.detach()
+        avg_loss = sum_loss / (step + 1)  # tensor([???], device='cuda:0')
+        perplexity = torch.exp(avg_loss)  # tensor([???], device='cuda:0')
 
         data_loader.desc = "[train epoch {}] lr: {:.5f}, loss: {:.3f}, ppl: {:.3f}".format(
             epoch,
             optimizer.param_groups[0]["lr"],
-            avg_loss,
-            perplexity
+            avg_loss.item(),
+            perplexity.item()
         )
 
         if not torch.isfinite(loss):
@@ -70,8 +45,8 @@ def train_one_epoch(model, device, data_loader, epoch, optimizer, lr_scheduler):
         lr_scheduler.step()
 
     return {
-        'loss': avg_loss,
-        'perplexity': perplexity
+        'loss': avg_loss.item(),
+        'perplexity': perplexity.item()
     }
 
 
@@ -83,12 +58,11 @@ def validate(model, device, data_loader, epoch):
 
     data_loader = tqdm(data_loader, file=sys.stdout)
     for step, data in enumerate(data_loader):
-        inputs = data['input_ids'].to(device)  # [batch size, max seq len(batch内句子最大长度)]
+        input_ids = data['input_ids'].to(device)  # torch.Size([batch_size, max_seq_len(input_ids)])
+        attention_mask = data['attention_mask'].to(device)  # btorch.Size([batch_size, max_seq_len(input_ids)])
 
-        outputs = model(input_ids=inputs, labels=inputs)
-        # outputs: [0]: loss        一个数
-        #          [1]: logits      size=[batch size, max seq len, vocab size], 如[16,512,50257]
-        loss = outputs[0]
+        outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
+        loss = outputs.loss
 
         accu_loss += loss.mean().item()
         avg_loss = accu_loss / (step + 1)
@@ -104,3 +78,25 @@ def validate(model, device, data_loader, epoch):
         'loss': avg_loss.item(),
         'perplexity': perplexity.item()
     }
+    
+
+def read_json(data_file):
+    with open(data_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return data
+
+def init_logger(args, current_time):
+    # 用于记录训练过程中的信息
+    os.makedirs(os.path.join(sys.path[0], "logs"), exist_ok=True)
+    log_path = os.path.join(sys.path[0], "logs", "{}_{}.txt".format(args.pretrained_model_name_or_path.split('/')[-1], current_time))
+    logger = logging.getLogger(__name__)
+    logger.setLevel(level=logging.INFO)
+    handler = logging.FileHandler(log_path)
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
+    # write args information
+    for key, value in args.__dict__.items():
+        logger.info(f'{key}: {value}')
+
+    return logger

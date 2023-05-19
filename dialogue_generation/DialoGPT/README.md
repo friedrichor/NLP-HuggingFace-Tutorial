@@ -1,33 +1,120 @@
-# Fine-tune DialoGPT
+# Fine-tune DialoGPT for Text Dialogue
 
-## 代码使用流程：
-1. 运行 `load_dataset.py` 下载并处理数据集并保存到本地，这里使用的是 ProsocialDialog 数据集 (训练集120236, 验证集20416, 测试集25029)，文档：[https://huggingface.co/datasets/allenai/prosocial-dialog](https://huggingface.co/datasets/allenai/prosocial-dialog)  
-如果fine-tune DialoGPT-small, batch_size=8, 显存8G就能跑全部数据。  
-如果显存不够的话或者只想简单跑一下看能不能运行，可以运行 `load_partial_dataset.py`，这里我只截取了 4000 个训练集数据，验证集和测试集数据均500个  
-如果显存还不够的话可以截取更少的训练集，如 2000个、1000个，也可以把 batch_size 改小，如4，不过更少的训练集可能导致模型效果不是很好  
-2. 训练相关参数都在 `params.py`, 根据自己需求更改即可    
-如果只用部分数据集训练，设置 `data_dir = os.path.join(sys.path[0], 'dataset_partial')`  
-如果用全部数据集训练，设置 `data_dir = os.path.join(sys.path[0], 'dataset')`  
-3. 运行 `train.py` 即可开始训练，训练好的模型默认保存在 `weights` 文件夹
-4. 运行 `generate.py` 生成测试集的回复，用于后续评价模型性能  
-假设我保存的模型权重名称为 `DialoGPT-small-Mar10_20-19-24-epoch2-ppl1.757.pth`，您可以通过在终端输入以下指令来运行 `generate.py`:  
-```commandline
-python generate.py --weights_name=DialoGPT-small-Mar10_20-19-24-epoch2-ppl1.757.pth
+## 数据集
+
+&emsp;使用 ProsocialDialog 数据集 (单轮对话数据集)，其中训练集 120,236, 验证集 20,416, 测试集 25,029)  
+
+&emsp;可从 Hugging Face ([https://huggingface.co/datasets/allenai/prosocial-dialog](https://huggingface.co/datasets/allenai/prosocial-dialog)) 了解更多   
+
+运行 `load_and_process_dataset/prosocial_dialog.py`。下载并处理 ProsocialDialog 数据集到本地，处理成：
+```json
+[
+    {
+        "dialogue": "I tried a bit of shadowboxing today. Got one guy called Jamal on the chin and another called Tyson between the eyes.<|endoftext|> This isn't a joke about black people, right? If it is, it isn't funny.<|endoftext|>"
+    },
+    {
+        "dialogue": "You're right, it isn't funny. Finding enjoyment in other people's pains isn't funny.<|endoftext|> I am glad that you agree. Joking about abusing black people can quickly get you marked as a racist.<|endoftext|>"
+    },
+    ...
+]
 ```
-运行后会将 ground-truth 的 response 和 fine-tune 后模型预测出的 response 保存在 `results/gt_pred_response.json`
-5. 运行 `evaluate.py` 提供了计算 BLEU 和 ROUGE 评价指标的代码，用于评估模型性能  
-6. `demo.py` 中提供了使用 fine-tune 后模型来进行对话的演示，您可以通过在终端输入以下指令来运行 (由于所使用的数据集是单轮对话数据集，这里演示时也只提供了单轮对话，多轮对话请自行修改)  
+运行后的结果可以在 [dialogue_generation/DialoGPT/dataset](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/dialogue_generation/DialoGPT/dataset) 找到 (若因网络等原因无法连接到 Hugging Face 导致运行报错，可以直接使用该文件)
+
+<hr>
+
+## 硬件设备要求
+
+若使用 `DialoGPT-small` 作为预训练模型：
+- 当使用全部数据用于训练时
+  - 若设置 `train_batch_size=64`，需要一块 48GB 的 GPU，训练一个 epoch 需要约 12min
+  - 若设置 `train_batch_size=32`，需要一块 24GB 的 GPU，训练一个 epoch 需要约 12min
+  - 若设置 `train_batch_size=8`，需要一块 12GB 的 GPU，训练一个 epoch 需要约 16min
+- 当使用部分数据 (从数据集中截取部分样本，训练集4k，验证集4k，测试集500) 用于训练时，若设置 `train_batch_size=8`，需要一块 8GB 的 GPU，训练一个 epoch 仅需 32s  
+  <font color=DarkOrange>如果仅仅想测试代码是否可运行，为节省时间，推荐使用部分数据用于训练。  
+  可以通过运行 `load_and_process_dataset/partial_prosocial_dialog.py` 获得只有部分训练集和测试集的数据集，运行后的结果可以在 [dialogue_generation/DialoGPT/partial_dataset](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/dialogue_generation/DialoGPT/partial_dataset) 找到</font>  
+
+若使用 `microsoft/DialoGPT-medium` 或 `microsoft/DialoGPT-large`，请自行探索所需硬件要求。
+
+<hr>
+
+## 训练相关参数和路径等
+
+&emsp;&emsp;在 `params.py` 可以找到默认值，可以在该文件进行修改和设置。  
+
+&emsp;&emsp;若您了解如何使用 shell 脚本运行代码，也可以通过 `train.sh` 设置相关参数和路径  
+
+&emsp;&emsp;默认设置使用部分数据用于训练和测试，若希望在整个数据集上进行训练和测试，请启用 `data_dir = os.path.join(sys.path[0], "dataset")` (params.py中) 或 `export DATA_DIR="dataset"` (train.sh中)
+
+
+<hr>
+
+## 运行
+
+### **下载并处理 ProsocialDialog 数据集**
+
+
 ```commandline
-python demo.py --weights_name=DialoGPT-small-Mar10_20-19-24-epoch2-ppl1.757.pth
+git clone https://github.com/friedrichor/NLP-HuggingFace-Tutorial
+cd NLP-HuggingFace-Tutorial/dialogue_generation/T5
+python load_and_process_dataset/partial_prosocial_dialog.py
+```
+或
+```commandline
+git clone https://github.com/friedrichor/NLP-HuggingFace-Tutorial
+cd NLP-HuggingFace-Tutorial/dialogue_generation/T5
+python load_and_process_dataset/prosocial_dialog.py
 ```
 
+### **训练**
+```commandline
+python train.py
+```
+或
+```commandline
+sh train.sh
+```
 
-## 其他说明
-1. ProsocialDialog 是一个单轮对话的数据集，运行`load_dataset.py`后的结果放在了[dialogue_generation/datasets/ProsocialDialog_processed](https://github.com/friedrichor/HuggingFace-Tutorial/tree/main/dialogue_generation/datasets/ProsocialDialog_processed)  
-如果想用你自己的数据训练，把数据处理成和我的数据格式相同即可，训练代码无需更改  
-如果是用多轮对话的数据集可以参考我处理后的数据格式，如 `sentence1 [SEP] sentence2 [SEP] sentence3 [SEP] sentence4 [EOS]`, 
-这里的 `[SEP]` 和 `[EOS]` 分别指 `sep_token` 和 `eos_token`。各个Tokenizer中 `sep_token` 和 `eos_token` 的定义还不太一样，如 BERT 中的 `sep_token` 就是 `[SEP]`，`eos_token` 就是 `[EOS]`，
-而 DialoGPT 的 tokenizer 并没有定义 `sep_token` (需要用的话要用 `add_special_tokens`)，且 `eos_token` 为 `<|endoftext|>`。这里我也只是举个例子，提供个参考，实际以你自己做的任务为准。
-2. 训练时使用了 logging 和 tensorboard 记录训练时各个参数/指标的变化
-3. `generate.py` 中生成回复时使用的策略为 greedy search，可以根据自己需要改进，这里只是举个简单的例子
-4. 在计算评价指标时，并没有用 huggingface 中的 evaluate 库，因为 `evaluate.load` 加载计算评价指标时太过漫长，所以用的是 `nltk` 和 `rouge` 库分别计算 BLEU 和 ROUGE
+&emsp;&emsp;此外，训练时使用了 logging 和 tensorboard 记录训练时各个参数/指标的变化。关于 tensorboard，可以通过以下命令查看
+```
+tensorboard --logdir=runs
+```
+
+### **测试**
+
+#### **1. 生成预测回复**
+
+若训练后保存模型参数为 `weights/DialoGPT-small-May19_21-48-12-epoch0-ppl6.219.pth` 且使用该模型用于测试，则可通过以下代码测试
+```
+python generate_response.py --weights_name DialoGPT-small-May19_21-48-12-epoch0-ppl6.219.pth
+```
+运行后将会生成文件 `results/gt_pred_response.json`，可用于后续计算评价指标
+
+#### **2. evaluate/计算评价指标**
+
+提供了计算 BLEU 和 ROUGE 评价指标的代码
+```
+python evaluate.py 
+```
+
+### **demo**
+
+使用训练后的模型用于单轮人机对话的 demo (DialoGPT-small-May19_21-48-12-epoch0-ppl6.219.pth 换成自己的模型名)
+```
+python demo.py --weights_name DialoGPT-small-May19_21-48-12-epoch0-ppl6.219.pth
+```
+
+<hr>
+
+## 使用自己的数据集进行训练
+按照 `dialogue_generation/DialoGPT/dataset` 或 `dialogue_generation/DialoGPT/partial_dataset` 中的格式，将自己的数据集改成相同格式，即
+```json
+[
+    {
+        "dialogue": "I tried a bit of shadowboxing today. Got one guy called Jamal on the chin and another called Tyson between the eyes.<|endoftext|> This isn't a joke about black people, right? If it is, it isn't funny.<|endoftext|>"
+    },
+    {
+        "dialogue": "You're right, it isn't funny. Finding enjoyment in other people's pains isn't funny.<|endoftext|> I am glad that you agree. Joking about abusing black people can quickly get you marked as a racist.<|endoftext|>"
+    },
+    ...
+]
+```
