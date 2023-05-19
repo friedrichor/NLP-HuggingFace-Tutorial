@@ -24,7 +24,7 @@ def main(args):
     with torch.no_grad():
         for _ in range(5):
             user_input = input(">> User:")
-            input_ids = tokenizer(user_input,
+            input_ids = tokenizer(args.text_prefix + user_input,
                                   add_special_tokens=True,
                                   return_tensors='pt').input_ids
             # num_beams=1 & do_sample=False -> greedy search
