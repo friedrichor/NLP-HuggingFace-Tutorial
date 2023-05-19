@@ -1,6 +1,6 @@
 # HuggingFace-Tutorial
 
-使用 Hugging Face 中的各个库来做一些 NLP 任务的 tutorial
+使用 Hugging Face 以及 PyTorch 做一些 NLP 任务的 tutorial
 
 代码相对简洁易懂，适合新手入门，还在更新中……
 
