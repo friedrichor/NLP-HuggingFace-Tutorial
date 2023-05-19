@@ -10,6 +10,9 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
 import params
 from utils import read_json
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 def main(args):
     # tokenizer
