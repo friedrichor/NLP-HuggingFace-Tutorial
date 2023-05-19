@@ -14,7 +14,7 @@ from datasets import load_dataset
 def process_data(data, mode: str):
     """Process and save data to disk
     :param data: train/validation/test set loaded from huggingface
-    :param mode: Choose from [“train”, "validation", "test"]. For file naming
+    :param mode: Choose from ["train", "validation", "test"]. For file naming
     :return: None
     """
     print(f"There are {len(data)} pieces of data in the {mode} set")
@@ -24,10 +24,9 @@ def process_data(data, mode: str):
         data_dic_list.append({"text": per_data["text"], "label": per_data["label"]})
 
     # Writing to a json file
-    dataset_folder = os.path.join(sys.path[0], 'dataset')
+    dataset_folder = os.path.join(sys.path[0], "../dataset")
     os.makedirs(dataset_folder, exist_ok=True)
-    fout_path = os.path.join(dataset_folder, mode + '.json')
-    with open(fout_path, 'w', encoding='utf-8') as fout:
+    with open(os.path.join(dataset_folder, mode + ".json"), 'w', encoding='utf-8') as fout:
         json.dump(data_dic_list, fout, indent=4)
 
 
@@ -46,15 +45,7 @@ if __name__ == '__main__':
     print(dataset)  # 查看数据集格式
     pprint(dataset['train'][0], width=1000)  # 查看数据格式
     print("=" * 100)
-
-    train_data = dataset['train']
-    process_data(train_data, 'train')
-
-    validation_data = dataset['validation']
-    process_data(validation_data, 'validation')
-
-    test_data = dataset['test']
-    process_data(test_data, 'test')
-
-
-
+    
+    for mode in ["train", "validation", "test"]:
+        splited_data = dataset[mode]
+        process_data(splited_data, mode)

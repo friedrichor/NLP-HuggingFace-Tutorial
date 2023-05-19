@@ -1,5 +1,7 @@
+import os
 import sys
 import json
+import logging
 from tqdm import tqdm
 
 import torch
@@ -8,11 +10,6 @@ import torch.nn as nn
 from sklearn.metrics import accuracy_score, f1_score
 
 
-def read_json(data_file):
-    with open(data_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    return data
 
 
 def train_one_epoch(model, device, data_loader, epoch, optimizer, lr_scheduler):
@@ -50,9 +47,9 @@ def train_one_epoch(model, device, data_loader, epoch, optimizer, lr_scheduler):
         sum_loss += loss.detach()
         avg_loss = sum_loss.item() / (step + 1)
 
-        data_loader.desc = "[train epoch {}] lr: {:.5f}, loss: {:.3f}, acc: {:.3f}, macro_f1: {:.3f}, micro_f1: {:.3f}, weighted_f1: {:.3f}".format(
+        data_loader.desc = "[train epoch {}] lr: {:.5f}, loss: {:.3f}, acc: {:.3f}, macro_f1: {:.3f}, micro_f1: {:.3f}".format(
             epoch, optimizer.param_groups[0]["lr"], avg_loss,
-            accuracy, macro_f1, micro_f1, weighted_f1
+            accuracy, macro_f1, micro_f1
         )
 
         if not torch.isfinite(loss):
@@ -106,9 +103,9 @@ def validate(model, device, data_loader, epoch=0):
         sum_loss += loss.detach()
         avg_loss = sum_loss.item() / (step + 1)
 
-        data_loader.desc = "[valid epoch {}] loss: {:.3f}, acc: {:.3f}, macro_f1: {:.3f}, micro_f1: {:.3f}, weighted_f1: {:.3f}".format(
+        data_loader.desc = "[valid epoch {}] loss: {:.3f}, acc: {:.3f}, macro_f1: {:.3f}, micro_f1: {:.3f}".format(
             epoch, avg_loss,
-            accuracy, macro_f1, micro_f1, weighted_f1
+            accuracy, macro_f1, micro_f1
         )
 
     return {
@@ -118,3 +115,26 @@ def validate(model, device, data_loader, epoch=0):
         'micro_f1': micro_f1,
         'weighted_f1': weighted_f1
     }
+
+
+def read_json(data_file):
+    with open(data_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return data
+
+
+def init_logger(args, current_time):
+    # 用于记录训练过程中的信息
+    os.makedirs(os.path.join(sys.path[0], "logs"), exist_ok=True)
+    log_path = os.path.join(sys.path[0], "logs", "{}_{}.txt".format(args.pretrained_model_name_or_path, current_time))
+    logger = logging.getLogger(__name__)
+    logger.setLevel(level=logging.INFO)
+    handler = logging.FileHandler(log_path)
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
+    # write args information
+    for key, value in args.__dict__.items():
+        logger.info(f'{key}: {value}')
+
+    return logger
