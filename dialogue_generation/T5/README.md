@@ -6,7 +6,7 @@
 
 &emsp;可从 Hugging Face ([https://huggingface.co/datasets/allenai/prosocial-dialog](https://huggingface.co/datasets/allenai/prosocial-dialog)) 了解更多   
 
-运行 `load_and_process_dataset.py`。下载并处理 ProsocialDialog 数据集到本地，处理成：
+运行 `load_and_process_dataset/prosocial_dialog.py`。下载并处理 ProsocialDialog 数据集到本地，处理成：
 ```json
 [
     {
@@ -31,9 +31,9 @@
   - 若设置 `train_batch_size=64`，需要一块 48GB 的 GPU，训练一个 epoch 需要约 15min
   - 若设置 `train_batch_size=32`，需要一块 24GB 的 GPU，训练一个 epoch 需要约 15min
   - 若设置 `train_batch_size=8`，需要一块 12GB 的 GPU (训练时占 9GB 显存)，训练一个 epoch 需要约 30min
-- 当使用部分数据 (训练集截取 4k 个样本，测试集截取 500 个样本) 用于训练时，若设置 `train_batch_size=8`，需要一块 8GB 的 GPU，训练一个 epoch 仅需要 1.5min  
+- 当使用部分数据 (从数据集中截取部分样本，训练集4k，验证集4k，测试集500) 用于训练时，若设置 `train_batch_size=8`，需要一块 8GB 的 GPU，训练一个 epoch 仅需 45s  
   <font color=DarkOrange>如果仅仅想测试代码是否可运行，为节省时间，推荐使用部分数据用于训练。  
-  可以通过运行 `load_and_process_partial_dataset.py` 获得只有部分训练集和测试集的数据集，运行后的结果可以在 [dialogue_generation/T5/partial_dataset](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/dialogue_generation/T5/partial_dataset) 找到</font>  
+  可以通过运行 `load_and_process_dataset/partial_prosocial_dialog.py` 获得只有部分训练集和测试集的数据集，运行后的结果可以在 [dialogue_generation/T5/partial_dataset](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/dialogue_generation/T5/partial_dataset) 找到</font>  
 
 <hr>
 
@@ -50,16 +50,20 @@
 
 ## 运行
 
-### **训练**
+### **下载并处理 ProsocialDialog 数据集**
+
 ```commandline
 git clone https://github.com/friedrichor/NLP-HuggingFace-Tutorial
 cd NLP-HuggingFace-Tutorial/dialogue_generation/T5
+python load_and_process_dataset/partial_prosocial_dialog.py
+```
+
+### **训练**
+```commandline
 python train.py
 ```
 或
 ```commandline
-git clone https://github.com/friedrichor/NLP-HuggingFace-Tutorial
-cd NLP-HuggingFace-Tutorial/dialogue_generation/T5
 sh train.sh
 ```
 
