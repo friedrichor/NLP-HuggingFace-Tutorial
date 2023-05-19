@@ -12,7 +12,7 @@ class MyDataset(Dataset):
         self.text_prefix = text_prefix
         self.tokenizer = tokenizer
 
-    def __getitem__(self, index) -> Dict[str, List]:
+    def __getitem__(self, index) -> Dict[str, torch.Tensor]:
         context = self.data[index]["context"]
         response = self.data[index]["response"]
 
@@ -41,7 +41,7 @@ class MyDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def collate_fn(self, batch) -> Dict[str, torch.tensor]:
+    def collate_fn(self, batch) -> Dict[str, torch.Tensor]:
         input_ids_list = [instance["input_ids"][0] for instance in batch]
         input_ids_pad = pad_sequence(input_ids_list, batch_first=True, padding_value=self.tokenizer.pad_token_id)
 
