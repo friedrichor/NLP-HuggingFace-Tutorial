@@ -15,6 +15,9 @@ import params
 from dataset import MyDataset
 from utils import train_one_epoch, validate, read_json, init_logger
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 def main(args):
     pprint(args.__dict__)
