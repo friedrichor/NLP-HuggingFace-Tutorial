@@ -6,6 +6,8 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
 
 import params
 
+import warnings
+warnings.filterwarnings("ignore")
 
 def main(args):
     # tokenizer
