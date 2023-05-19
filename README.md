@@ -8,8 +8,6 @@
 
 备注：对话生成的代码同样适用于文本生成、文本摘要等 text-to-text 任务。
 
-见 [dialogue_generation](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/dialogue_generation)
- 
 - DialoGPT
   - paper: [DIALOGPT : Large-Scale Generative Pre-training for Conversational Response Generation](https://aclanthology.org/2020.acl-demos.30/)  (ACL 2020)  
   - fine-tune DialoGPT for dialogue generation: [code](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/dialogue_generation/DialoGPT)
@@ -24,6 +22,7 @@
 - BERT
   - paper: [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://aclanthology.org/N19-1423/) (NAACL 2019)
   - fine-tune BERT for text classification: [code](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/text_classification/BERT)
+  - prompt-tuning BERT for text classification: [code](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/text_classification_Prompt/BERT)
 - RoBERTa
   - paper: [RoBERTa: A Robustly Optimized BERT Pretraining Approach](https://arxiv.org/abs/1907.11692) (arXiv 2019)
   - fine-tune RoBERTa for dialogue generation: [code](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/tree/main/text_classification/RoBERTa)
