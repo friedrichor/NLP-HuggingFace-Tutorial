@@ -49,7 +49,7 @@ def main(args):
                               pin_memory=True,
                               num_workers=0,
                               collate_fn=valid_set.collate_fn,
-                              drop_last=False)
+                              drop_last=True)
 
     # model
     model = T5ForConditionalGeneration.from_pretrained(args.pretrained_model_name_or_path)
