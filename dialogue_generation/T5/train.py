@@ -57,8 +57,8 @@ def main(args):
 
     optimizer = AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     lr_scheduler = get_linear_schedule_with_warmup(optimizer=optimizer,
-                                                   num_warmup_steps=len(train_loader),
-                                                   num_training_steps=args.num_warmup_steps)
+                                                   num_warmup_steps=args.num_warmup_steps,
+                                                   num_training_steps=len(train_loader) * args.train_batch_size)
 
     # tensorboard --logdir=runs
     # 用于记录训练过程中各个参数/指标的变化
