@@ -4,6 +4,8 @@
 
 代码相对简洁易懂，适合新手入门，还在更新中……
 
+如有任何问题，可以在 [issues](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/issues) 中提出，也可以在 [CSDN/friedrichor](https://blog.csdn.net/Friedrichor) 私信我。
+
 ## 对话生成
 
 备注：对话生成的代码同样适用于文本生成、文本摘要等 text-to-text 任务。
