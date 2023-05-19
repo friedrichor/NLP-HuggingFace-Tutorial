@@ -50,11 +50,14 @@
 
 ## 运行
 
-### **下载并处理 ProsocialDialog 数据集**
-
 ```commandline
 git clone https://github.com/friedrichor/NLP-HuggingFace-Tutorial
 cd NLP-HuggingFace-Tutorial/dialogue_generation/T5
+```
+
+### **下载并处理 ProsocialDialog 数据集**
+
+```commandline
 python load_and_process_dataset/partial_prosocial_dialog.py
 ```
 
