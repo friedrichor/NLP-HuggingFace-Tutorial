@@ -1,4 +1,4 @@
-# HuggingFace-Tutorial
+# NLP-HuggingFace-Tutorial
 
 使用 Hugging Face 以及 PyTorch 做一些 NLP 任务的 tutorial
 
