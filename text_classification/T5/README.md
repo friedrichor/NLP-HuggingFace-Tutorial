@@ -16,7 +16,7 @@ T5 (Text-To-Text Transfer Transformer) 是一个 text-to-text 模型，可以直
 
 先安装 sentencepiece:  
 ```
-ip install sentencepiece
+pip install sentencepiece
 ```
 
 1. 运行 `load_dataset.py` 下载并处理数据集并保存到本地，这里使用的是 tweet_eval 数据集中的情感分析数据集 (4 分类) 
