@@ -2,9 +2,16 @@
 
 使用 Hugging Face 以及 PyTorch 做一些 NLP 任务的 tutorial
 
-代码相对简洁易懂，适合新手入门，还在更新中……
+代码相对简洁易懂，适合新手入门
 
 如有任何问题，可以在 [issues](https://github.com/friedrichor/NLP-HuggingFace-Tutorial/issues) 中提出，也可以在 [CSDN/friedrichor](https://blog.csdn.net/Friedrichor) 私信我。
+
+## PyTorch 环境配置 / 服务器
+
+Windows: [Windows 系统从零配置 Python 环境，安装CUDA、CUDNN、PyTorch 详细教程](https://blog.csdn.net/Friedrichor/article/details/129093495)  
+Linux服务器: [远程服务器配置 Anaconda 并安装 PyTorch 详细教程](https://blog.csdn.net/Friedrichor/article/details/127721828)  
+本地-服务器文件传输: [将本地项目/文件上传到远程服务器中详细教程（vscode，sftp）](https://blog.csdn.net/Friedrichor/article/details/122620361)  
+
 
 ## 对话生成
 
